@@ -47,11 +47,9 @@ def voice(bot: Bot, update: Update):
 
     
 start_handler = CommandHandler('start', start)
-echo_handler = MessageHandler(Filters.text, echo)
 voice_handler = MessageHandler(Filters.voice, voice)
 
 dispatcher.add_handler(start_handler)
-dispatcher.add_handler(echo_handler)
 dispatcher.add_handler(voice_handler)
 
 updater.start_polling()
