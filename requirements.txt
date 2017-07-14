@@ -1,0 +1,6 @@
+python-telegram-bot
+google-cloud
+google-cloud-speech
+requests
+
+
