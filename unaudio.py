@@ -25,7 +25,7 @@ speech_client = speech.Client()
 
 def start(bot: Bot, update: Update):
     logging.info(update)
-    bot.send_message(chat_id=update.message.chat_id, text="Перешлите мне голосовое сообщение")
+    bot.send_message(chat_id=update.message.chat_id, text='Перешлите мне голосовое сообщение')
     
     
 def voice(bot: Bot, update: Update):
@@ -34,13 +34,27 @@ def voice(bot: Bot, update: Update):
     voice_file_info = bot.get_file(voice.file_id)
     logging.info(voice_file_info)
     
-    bot.send_message(chat_id=update.message.chat_id, text="Распознаю...")
+    bot.send_message(chat_id=update.message.chat_id, text='Распознаю...')
     voice_bytes = requests.get(voice_file_info.file_path).content
     try:
         alternatives = get_alternatives(voice_bytes, 'ru-RU')
-        message = "\n".join([alt.transcript for alt in alternatives])
+        if len(alternatives) > 1:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text='Я не совсем уверен в результате,'
+                                  'поэтому вот несколько вариантов:')
+            message = ''
+            for ind, alternative in enumerate(alternatives):
+                message += f'{ind + 1}. {alternative.transcript}'
+                
+        elif len(alternatives) == 1:
+            logging.info(alternatives[1].transcript)
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Вот, что удалось распознать:")
+            message = alternatives[1].transcript
+        else:
+            message = 'Распознать не удалось'
     except:
-        message = "Распознавание не удалось."
+        message = 'Распознать не удалось.'
         
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
