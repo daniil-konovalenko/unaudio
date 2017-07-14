@@ -4,6 +4,8 @@ from telegram import Bot
 import logging
 import requests
 from google.cloud import speech
+from google.cloud.speech import Alternative
+from typing import List
 
 import config
 
@@ -31,21 +33,25 @@ def voice(bot: Bot, update: Update):
     voice = update.message.voice
     voice_file_info = bot.get_file(voice.file_id)
     logging.info(voice_file_info)
+    
     bot.send_message(chat_id=update.message.chat_id, text="Распознаю...")
     voice_bytes = requests.get(voice_file_info.file_path).content
     try:
-        sample = speech_client.sample(
-            voice_bytes,
-            encoding='OGG_OPUS',
-            sample_rate_hertz=16000)
-        alternatives = sample.recognize('ru-RU')
+        alternatives = get_alternatives(voice_bytes, 'ru-RU')
         message = "\n".join([alt.transcript for alt in alternatives])
     except:
         message = "Распознавание не удалось."
         
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
-    
+
+def get_alternatives(voice: bytes, language_code: str) -> List[Alternative]:
+    sample = speech_client.sample(
+            voice,
+            encoding='OGG_OPUS',
+            sample_rate_hertz=16000)
+    return sample.recognize('ru-RU')
+
 start_handler = CommandHandler('start', start)
 voice_handler = MessageHandler(Filters.voice, voice)
 
