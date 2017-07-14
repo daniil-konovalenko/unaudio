@@ -3,9 +3,11 @@ from telegram.update import Update
 from telegram import Bot
 import logging
 import requests
+import os
 from google.cloud import speech
 from google.cloud.speech import Alternative
 from typing import List
+
 
 import config
 
@@ -25,7 +27,11 @@ speech_client = speech.Client()
 
 def start(bot: Bot, update: Update):
     logging.info(update)
-    bot.send_message(chat_id=update.message.chat_id, text='Перешлите мне голосовое сообщение')
+    bot.send_message(chat_id=update.message.chat_id,
+                     text='Я бот, который переводит голосовые сообщения в текст. '
+                          'Перешлите мне голосовое сообщение, а я попытаюсь '
+                          'его распознать. Пока что я распознаю русский язык, '
+                          'но английский тоже иногда получается.')
     
     
 def voice(bot: Bot, update: Update):
@@ -72,4 +78,11 @@ voice_handler = MessageHandler(Filters.voice, voice)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(voice_handler)
 
-updater.start_polling()
+PORT = int(os.environ.get('PORT', '5000'))
+
+updater.start_webhook(listen="0.0.0.0",
+                      port=PORT,
+                      url_path=config.token)
+
+updater.bot.set_webhook("https://unaudio.herokuapp.com/" + config.token)
+updater.idle()
